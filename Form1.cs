@@ -135,7 +135,7 @@ public partial class Form1 : Form
         {
             try
             {
-                var imageMat = Cv2.ImRead(ofd.FileName, ImreadModes.Color);
+                var imageMat = FaceRecognitionService.ReadImage(ofd.FileName);
                 if (imageMat.Empty())
                 {
                     MessageBox.Show("Seçilen resim dosyası okunamadı.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -324,7 +324,13 @@ public partial class Form1 : Form
         if (_detector == null || _recognizer == null) return;
 
         string sampleFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "sample_data");
-        int count = _recognizer.LoadSamplesFromDirectory(sampleFolder, _detector);
+
+        // Kamera açıkken kamera thread'i de örnek listesini kullanır; kilit ile sırayla çalışılır
+        int count;
+        lock (_frameLock)
+        {
+            count = _recognizer.LoadSamplesFromDirectory(sampleFolder, _detector);
+        }
         UpdateSamplesList();
         MessageBox.Show($"Örnekler yeniden yüklendi. Toplam: {count} adet referans yüz hazır.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }

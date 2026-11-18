@@ -23,11 +23,14 @@ namespace YMH219_FaceRecognition.Services
         }
 
         /// <summary>
-        /// Belirtilen klasördeki kişi fotoğraflarını tarayarak veri setini yükler.
+        /// Belirtilen klasördeki kişi fotoğraflarını tarayarak veri setini (yeniden) yükler.
+        /// Önceden yüklenmiş örnekler silinir; böylece tekrar tarandığında örnekler çoğalmaz.
         /// Klasör yapısı: sample_data/KisiAdi/resim1.jpg veya sample_data/KisiAdi_1.jpg
         /// </summary>
         public int LoadSamplesFromDirectory(string directoryPath, FaceDetectionService detector)
         {
+            ClearSamples();
+
             if (!Directory.Exists(directoryPath)) return 0;
 
             int loadedCount = 0;
@@ -40,10 +43,10 @@ namespace YMH219_FaceRecognition.Services
             {
                 try
                 {
-                    using var img = Cv2.ImRead(file, ImreadModes.Color);
+                    using var img = ReadImage(file);
                     if (img.Empty()) continue;
 
-                    string personName = Path.GetFileNameWithoutExtension(file).Split('_')[0];
+                    string personName = GetPersonName(file, directoryPath);
 
                     // Resimdeki yüzü tespit et
                     var faces = detector.DetectFaces(img);
@@ -66,6 +69,46 @@ namespace YMH219_FaceRecognition.Services
             }
 
             return loadedCount;
+        }
+
+        /// <summary>
+        /// Dosyanın hangi kişiye ait olduğunu bulur: alt klasördeyse klasör adı
+        /// (sample_data/Ali/resim1.jpg → "Ali"), değilse dosya adının '_' öncesi
+        /// (sample_data/Ali_1.jpg → "Ali") kullanılır.
+        /// </summary>
+        private static string GetPersonName(string filePath, string rootDirectory)
+        {
+            string parentFolder = Path.GetFullPath(Path.GetDirectoryName(filePath) ?? rootDirectory);
+            string root = Path.GetFullPath(rootDirectory);
+
+            if (!string.Equals(parentFolder.TrimEnd('\\', '/'), root.TrimEnd('\\', '/'), StringComparison.OrdinalIgnoreCase))
+            {
+                return Path.GetFileName(parentFolder);
+            }
+
+            return Path.GetFileNameWithoutExtension(filePath).Split('_')[0];
+        }
+
+        /// <summary>
+        /// Resmi dosyadan okur. Cv2.ImRead Windows'ta Türkçe karakter içeren yolları
+        /// (ör. C:\Users\Birgül\...) okuyamayabildiği için dosya önce byte dizisi olarak okunur.
+        /// </summary>
+        public static Mat ReadImage(string path)
+        {
+            byte[] bytes = File.ReadAllBytes(path);
+            return Cv2.ImDecode(bytes, ImreadModes.Color);
+        }
+
+        /// <summary>
+        /// Yüklü tüm örnekleri bellekten siler.
+        /// </summary>
+        public void ClearSamples()
+        {
+            foreach (var s in _samples)
+            {
+                s.NormalizedFace.Dispose();
+            }
+            _samples.Clear();
         }
 
         /// <summary>
@@ -153,11 +196,7 @@ namespace YMH219_FaceRecognition.Services
 
         public void Dispose()
         {
-            foreach (var s in _samples)
-            {
-                s.NormalizedFace.Dispose();
-            }
-            _samples.Clear();
+            ClearSamples();
         }
     }
 }
