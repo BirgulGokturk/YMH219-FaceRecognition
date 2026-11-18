@@ -5,6 +5,7 @@ partial class Form1
     private System.ComponentModel.IContainer components = null;
 
     private System.Windows.Forms.Panel pnlTop;
+    private System.Windows.Forms.FlowLayoutPanel flowTopButtons;
     private System.Windows.Forms.Button btnStartCamera;
     private System.Windows.Forms.Button btnStopCamera;
     private System.Windows.Forms.Button btnSelectImage;
@@ -49,6 +50,7 @@ partial class Form1
     private void InitializeComponent()
     {
         pnlTop = new System.Windows.Forms.Panel();
+        flowTopButtons = new System.Windows.Forms.FlowLayoutPanel();
         btnStartCamera = new System.Windows.Forms.Button();
         btnStopCamera = new System.Windows.Forms.Button();
         btnSelectImage = new System.Windows.Forms.Button();
@@ -80,6 +82,7 @@ partial class Form1
         lblFooterSafety = new System.Windows.Forms.ToolStripStatusLabel();
 
         pnlTop.SuspendLayout();
+        flowTopButtons.SuspendLayout();
         ((System.ComponentModel.ISupportInitialize)splitMain).BeginInit();
         splitMain.Panel1.SuspendLayout();
         splitMain.Panel2.SuspendLayout();
@@ -98,16 +101,29 @@ partial class Form1
         // 
         pnlTop.BackColor = Color.FromArgb(245, 248, 250);
         pnlTop.BorderStyle = BorderStyle.FixedSingle;
-        pnlTop.Controls.Add(btnStartCamera);
-        pnlTop.Controls.Add(btnStopCamera);
-        pnlTop.Controls.Add(btnSelectImage);
-        pnlTop.Controls.Add(btnSaveFace);
+        // Butonlar FlowLayoutPanel içinde soldan sağa dizilir, durum etiketi sağa yaslanır.
+        // Sabit koordinat kullanılmadığı için ekran ölçeği (%125, %150) büyüse de
+        // etiket butonların üzerine binmez.
+        pnlTop.Controls.Add(flowTopButtons);
         pnlTop.Controls.Add(lblStatus);
         pnlTop.Dock = DockStyle.Top;
         pnlTop.Location = new Point(0, 0);
         pnlTop.Name = "pnlTop";
+        pnlTop.Padding = new Padding(8, 7, 8, 7);
         pnlTop.Size = new Size(960, 50);
         pnlTop.TabIndex = 0;
+
+        //
+        // flowTopButtons
+        //
+        flowTopButtons.Controls.Add(btnStartCamera);
+        flowTopButtons.Controls.Add(btnStopCamera);
+        flowTopButtons.Controls.Add(btnSelectImage);
+        flowTopButtons.Controls.Add(btnSaveFace);
+        flowTopButtons.Dock = DockStyle.Fill;
+        flowTopButtons.Name = "flowTopButtons";
+        flowTopButtons.TabIndex = 0;
+        flowTopButtons.WrapContents = false;
 
         // 
         // btnStartCamera
@@ -116,7 +132,8 @@ partial class Form1
         btnStartCamera.FlatStyle = FlatStyle.Flat;
         btnStartCamera.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
         btnStartCamera.ForeColor = Color.White;
-        btnStartCamera.Location = new Point(10, 8);
+        btnStartCamera.AutoSize = true;
+        btnStartCamera.Margin = new Padding(0, 0, 6, 0);
         btnStartCamera.Name = "btnStartCamera";
         btnStartCamera.Size = new Size(130, 32);
         btnStartCamera.TabIndex = 0;
@@ -132,7 +149,8 @@ partial class Form1
         btnStopCamera.FlatStyle = FlatStyle.Flat;
         btnStopCamera.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
         btnStopCamera.ForeColor = Color.White;
-        btnStopCamera.Location = new Point(146, 8);
+        btnStopCamera.AutoSize = true;
+        btnStopCamera.Margin = new Padding(0, 0, 6, 0);
         btnStopCamera.Name = "btnStopCamera";
         btnStopCamera.Size = new Size(130, 32);
         btnStopCamera.TabIndex = 1;
@@ -147,7 +165,8 @@ partial class Form1
         btnSelectImage.FlatStyle = FlatStyle.Flat;
         btnSelectImage.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
         btnSelectImage.ForeColor = Color.White;
-        btnSelectImage.Location = new Point(282, 8);
+        btnSelectImage.AutoSize = true;
+        btnSelectImage.Margin = new Padding(0, 0, 6, 0);
         btnSelectImage.Name = "btnSelectImage";
         btnSelectImage.Size = new Size(140, 32);
         btnSelectImage.TabIndex = 2;
@@ -161,7 +180,8 @@ partial class Form1
         btnSaveFace.BackColor = Color.FromArgb(240, 240, 240);
         btnSaveFace.FlatStyle = FlatStyle.Flat;
         btnSaveFace.Font = new Font("Segoe UI", 9F);
-        btnSaveFace.Location = new Point(428, 8);
+        btnSaveFace.AutoSize = true;
+        btnSaveFace.Margin = new Padding(0, 0, 6, 0);
         btnSaveFace.Name = "btnSaveFace";
         btnSaveFace.Size = new Size(130, 32);
         btnSaveFace.TabIndex = 3;
@@ -172,14 +192,14 @@ partial class Form1
         // 
         // lblStatus
         // 
-        lblStatus.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        lblStatus.AutoEllipsis = true;
         lblStatus.BackColor = Color.FromArgb(235, 235, 235);
         lblStatus.BorderStyle = BorderStyle.FixedSingle;
+        lblStatus.Dock = DockStyle.Right;
         lblStatus.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
         lblStatus.ForeColor = Color.DimGray;
-        lblStatus.Location = new Point(680, 9);
         lblStatus.Name = "lblStatus";
-        lblStatus.Size = new Size(265, 30);
+        lblStatus.Size = new Size(265, 34);
         lblStatus.Text = "○ BEKLEMEDE (Kamera veya Resim Seçin)";
         lblStatus.TextAlign = ContentAlignment.MiddleCenter;
 
@@ -198,8 +218,11 @@ partial class Form1
         // 
         // splitMain.Panel2
         // 
-        splitMain.Panel2.Controls.Add(grpResults);
+        // Dock sırası: koleksiyondaki son kontrol ilk yerleşir. Fill olan önizleme en başta
+        // eklenmeli ki üstteki sonuç listesi (Top) ve alttaki örnekler (Bottom) yerleştikten
+        // sonra kalan alanı doldursun; aksi halde sonuç listesi görünmez kalıyordu.
         splitMain.Panel2.Controls.Add(grpPreview);
+        splitMain.Panel2.Controls.Add(grpResults);
         splitMain.Panel2.Controls.Add(grpSamples);
         splitMain.Panel2.Padding = new Padding(4);
         splitMain.Size = new Size(960, 545);
@@ -373,10 +396,10 @@ partial class Form1
         statusStrip.Size = new Size(960, 22);
         statusStrip.TabIndex = 2;
 
+        // Model etiketi metni kadar yer kaplar, kalan genişliği kapsam etiketi kullanır
+        // (iki etiket birden Spring olunca uzun metinler üst üste biniyordu)
         lblFooterModel.Name = "lblFooterModel";
-        lblFooterModel.Size = new Size(420, 17);
-        lblFooterModel.Spring = true;
-        lblFooterModel.Text = "Model: haarcascade_frontalface_default.xml | OpenCV: OpenCvSharp4";
+        lblFooterModel.Text = "Model: Haar Cascade (frontalface) | OpenCvSharp4";
         lblFooterModel.TextAlign = ContentAlignment.MiddleLeft;
 
         lblFooterSafety.ForeColor = Color.DarkSlateGray;
@@ -395,11 +418,13 @@ partial class Form1
         Controls.Add(splitMain);
         Controls.Add(pnlTop);
         Controls.Add(statusStrip);
-        MinimumSize = new Size(820, 540);
+        MinimumSize = new Size(920, 600);
         Name = "Form1";
         StartPosition = FormStartPosition.CenterScreen;
         Text = "YMH219 - OpenCV ile Yüz Algılama ve Tanıma";
         FormClosing += Form1_FormClosing;
+        flowTopButtons.ResumeLayout(false);
+        flowTopButtons.PerformLayout();
         pnlTop.ResumeLayout(false);
         splitMain.Panel1.ResumeLayout(false);
         splitMain.Panel2.ResumeLayout(false);
