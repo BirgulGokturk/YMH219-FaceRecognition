@@ -16,7 +16,7 @@ namespace YMH219_FaceRecognition.Services
         {
             if (string.IsNullOrWhiteSpace(customModelPath))
             {
-                // Önce uygulama dizinindeki models klasörüne bak
+                // Model, derleme sırasında uygulama dizinindeki models klasörüne kopyalanır (bkz. .csproj)
                 string baseDir = AppDomain.CurrentDomain.BaseDirectory;
                 string localPath = Path.Combine(baseDir, "models", "haarcascade_frontalface_default.xml");
 

@@ -14,4 +14,13 @@
     <PackageReference Include="OpenCvSharp4.Windows" Version="4.13.0.20261107" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Haar Cascade modeli derleme çıktısındaki models/ klasörüne kopyalanır; böylece
+         uygulama proje klasörüne bağlı kalmadan (ör. bin klasöründen veya publish sonrası) çalışır. -->
+    <None Update="Models\haarcascade_frontalface_default.xml">
+      <Link>models\haarcascade_frontalface_default.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
