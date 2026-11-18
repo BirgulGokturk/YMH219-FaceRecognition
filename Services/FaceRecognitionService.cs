@@ -183,14 +183,45 @@ namespace YMH219_FaceRecognition.Services
         }
 
         /// <summary>
-        /// Algılanan yüzü yerel bir klasöre PNG/JPG olarak kaydeder.
+        /// Kişi adının örnek dosya adında kullanılabilir olup olmadığını kontrol eder.
+        /// Dosya adı "KisiAdi_zaman.jpg" biçiminde olduğu için ad yalnızca harf ve rakamdan oluşmalıdır.
+        /// </summary>
+        public static bool IsValidPersonName(string? name)
+        {
+            return !string.IsNullOrWhiteSpace(name)
+                && name.Length <= 30
+                && name.All(char.IsLetterOrDigit);
+        }
+
+        /// <summary>
+        /// Yüz görüntüsünü örnek klasörüne kaydeder ve hemen tanıma kümesine ekler.
+        /// Kaydedilen dosya, uygulama yeniden açıldığında da örnek olarak yüklenir.
+        /// </summary>
+        public string AddSampleAndSave(string personName, Mat face, string sampleFolder)
+        {
+            if (!IsValidPersonName(personName))
+            {
+                throw new ArgumentException("Kişi adı yalnızca harf ve rakamlardan oluşmalıdır.", nameof(personName));
+            }
+
+            string savedPath = SaveCroppedFace(face, sampleFolder, personName);
+            _samples.Add(new FaceSample(personName, NormalizeFace(face), savedPath));
+            return savedPath;
+        }
+
+        /// <summary>
+        /// Algılanan yüzü yerel bir klasöre JPG olarak kaydeder.
+        /// Cv2.ImWrite Türkçe karakterli yollarda başarısız olabildiği için görüntü önce
+        /// belleğe JPG olarak kodlanır, ardından .NET dosya işlemleriyle yazılır.
         /// </summary>
         public static string SaveCroppedFace(Mat face, string targetFolder, string label)
         {
             Directory.CreateDirectory(targetFolder);
             string fileName = $"{label}_{DateTime.Now:yyyyMMdd_HHmmssfff}.jpg";
             string fullPath = Path.Combine(targetFolder, fileName);
-            Cv2.ImWrite(fullPath, face);
+
+            Cv2.ImEncode(".jpg", face, out byte[] jpgBytes);
+            File.WriteAllBytes(fullPath, jpgBytes);
             return fullPath;
         }
 

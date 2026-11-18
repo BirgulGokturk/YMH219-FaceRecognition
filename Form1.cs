@@ -36,7 +36,7 @@ public partial class Form1 : Form
             _recognizer = new FaceRecognitionService();
 
             // Örnek veri setini oluştur ve yükle
-            string sampleFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "sample_data");
+            string sampleFolder = SampleFolder;
             SampleDataGenerator.GenerateDefaultSamples(sampleFolder);
 
             int loaded = _recognizer.LoadSamplesFromDirectory(sampleFolder, _detector);
@@ -319,11 +319,60 @@ public partial class Form1 : Form
         }
     }
 
+    /// <summary>
+    /// Son algılanan yüzü, girilen kişi adıyla sample_data klasörüne kaydeder ve tanıma
+    /// kümesine ekler. Böylece kendi yüzünüzün veya gönüllülerin farklı örnekleri
+    /// uygulama içinden toplanabilir.
+    /// </summary>
+    private void BtnAddSample_Click(object? sender, EventArgs e)
+    {
+        if (_recognizer == null) return;
+
+        string personName = txtSampleName.Text.Trim();
+        if (!FaceRecognitionService.IsValidPersonName(personName))
+        {
+            MessageBox.Show(
+                "Lütfen kişi için yalnızca harf ve rakamlardan oluşan bir ad girin (ör. Birgul).\nBoşluk, '_' ve noktalama işaretleri kullanılamaz.",
+                "Geçersiz Ad", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            txtSampleName.Focus();
+            return;
+        }
+
+        if (_lastCroppedFace == null || _lastCroppedFace.Empty())
+        {
+            MessageBox.Show(
+                "Henüz algılanmış bir yüz yok.\nÖnce kamerayı başlatın veya bir resim seçin; sağ üstteki önizlemede görünen yüz örnek olarak eklenir.",
+                "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        try
+        {
+            string savedPath;
+            lock (_frameLock)
+            {
+                savedPath = _recognizer.AddSampleAndSave(personName, _lastCroppedFace, SampleFolder);
+            }
+
+            UpdateSamplesList();
+            int personSampleCount = _recognizer.Samples.Count(s => s.PersonName == personName);
+            lblStatus.Text = $"➕ Örnek eklendi: {personName} ({personSampleCount}. örnek)";
+            lblStatus.BackColor = Color.FromArgb(220, 245, 220);
+            lblStatus.ForeColor = Color.DarkGreen;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Örnek eklenirken hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private static string SampleFolder => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "sample_data");
+
     private void BtnReloadSamples_Click(object? sender, EventArgs e)
     {
         if (_detector == null || _recognizer == null) return;
 
-        string sampleFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "sample_data");
+        string sampleFolder = SampleFolder;
 
         // Kamera açıkken kamera thread'i de örnek listesini kullanır; kilit ile sırayla çalışılır
         int count;

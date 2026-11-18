@@ -27,6 +27,9 @@ partial class Form1
     private System.Windows.Forms.GroupBox grpSamples;
     private System.Windows.Forms.ListBox lstSamples;
     private System.Windows.Forms.Button btnReloadSamples;
+    private System.Windows.Forms.Panel pnlAddSample;
+    private System.Windows.Forms.TextBox txtSampleName;
+    private System.Windows.Forms.Button btnAddSample;
 
     private System.Windows.Forms.StatusStrip statusStrip;
     private System.Windows.Forms.ToolStripStatusLabel lblFooterModel;
@@ -68,6 +71,9 @@ partial class Form1
         grpSamples = new System.Windows.Forms.GroupBox();
         lstSamples = new System.Windows.Forms.ListBox();
         btnReloadSamples = new System.Windows.Forms.Button();
+        pnlAddSample = new System.Windows.Forms.Panel();
+        txtSampleName = new System.Windows.Forms.TextBox();
+        btnAddSample = new System.Windows.Forms.Button();
 
         statusStrip = new System.Windows.Forms.StatusStrip();
         lblFooterModel = new System.Windows.Forms.ToolStripStatusLabel();
@@ -83,6 +89,7 @@ partial class Form1
         grpPreview.SuspendLayout();
         ((System.ComponentModel.ISupportInitialize)pbCroppedFace).BeginInit();
         grpSamples.SuspendLayout();
+        pnlAddSample.SuspendLayout();
         statusStrip.SuspendLayout();
         SuspendLayout();
 
@@ -293,12 +300,13 @@ partial class Form1
         // 
         grpSamples.Controls.Add(lstSamples);
         grpSamples.Controls.Add(btnReloadSamples);
+        grpSamples.Controls.Add(pnlAddSample);
         grpSamples.Dock = DockStyle.Bottom;
         grpSamples.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-        grpSamples.Location = new Point(4, 361);
+        grpSamples.Location = new Point(4, 326);
         grpSamples.Name = "grpSamples";
         grpSamples.Padding = new Padding(6);
-        grpSamples.Size = new Size(308, 180);
+        grpSamples.Size = new Size(308, 215);
         grpSamples.TabIndex = 2;
         grpSamples.TabStop = false;
         grpSamples.Text = "📁 Kayıtlı Örnekler (sample_data/)";
@@ -321,6 +329,37 @@ partial class Form1
         btnReloadSamples.Text = "🔄 Örnekleri Yeniden Tara";
         btnReloadSamples.UseVisualStyleBackColor = true;
         btnReloadSamples.Click += BtnReloadSamples_Click;
+
+        //
+        // pnlAddSample (Örnek Ekle: kişi adı + buton)
+        //
+        pnlAddSample.Controls.Add(txtSampleName);
+        pnlAddSample.Controls.Add(btnAddSample);
+        pnlAddSample.Dock = DockStyle.Bottom;
+        pnlAddSample.Location = new Point(6, 179);
+        pnlAddSample.Name = "pnlAddSample";
+        pnlAddSample.Padding = new Padding(0, 4, 0, 0);
+        pnlAddSample.Size = new Size(296, 30);
+        pnlAddSample.TabIndex = 2;
+
+        txtSampleName.Dock = DockStyle.Fill;
+        txtSampleName.Font = new Font("Segoe UI", 9F);
+        txtSampleName.MaxLength = 30;
+        txtSampleName.Name = "txtSampleName";
+        txtSampleName.PlaceholderText = "Kişi adı (ör. Birgul)";
+        txtSampleName.TabIndex = 0;
+
+        btnAddSample.BackColor = Color.FromArgb(46, 139, 87);
+        btnAddSample.Dock = DockStyle.Right;
+        btnAddSample.FlatStyle = FlatStyle.Flat;
+        btnAddSample.Font = new Font("Segoe UI", 8.5F, FontStyle.Bold);
+        btnAddSample.ForeColor = Color.White;
+        btnAddSample.Name = "btnAddSample";
+        btnAddSample.Size = new Size(110, 26);
+        btnAddSample.TabIndex = 1;
+        btnAddSample.Text = "➕ Örnek Ekle";
+        btnAddSample.UseVisualStyleBackColor = false;
+        btnAddSample.Click += BtnAddSample_Click;
 
         // 
         // statusStrip
@@ -372,6 +411,8 @@ partial class Form1
         grpPreview.ResumeLayout(false);
         ((System.ComponentModel.ISupportInitialize)pbCroppedFace).EndInit();
         grpSamples.ResumeLayout(false);
+        pnlAddSample.ResumeLayout(false);
+        pnlAddSample.PerformLayout();
         statusStrip.ResumeLayout(false);
         statusStrip.PerformLayout();
         ResumeLayout(false);
