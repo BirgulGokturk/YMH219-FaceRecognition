@@ -11,9 +11,13 @@ public partial class Form1 : Form
     private FaceRecognitionService? _recognizer;
     private readonly CameraService _camera = new();
 
-    private Mat? _currentFrame;
     private Mat? _lastCroppedFace;
-    private readonly List<DetectedFace> _currentDetections = new();
+
+    // Yalnızca arayüz (UI) thread'inde okunur ve değiştirilir
+    private List<DetectedFace> _currentDetections = new();
+
+    // Algılama/tanıma servisleri hem kamera thread'inden hem de arayüzden kullanıldığı için
+    // aynı anda tek bir işlemin çalışmasını sağlar
     private readonly object _frameLock = new();
 
     public Form1()
@@ -163,13 +167,14 @@ public partial class Form1 : Form
             return;
         }
 
+        // Bu karede bulunan yüzler yeni bir listede toplanır ve liste arayüz thread'ine devredilir.
+        // Böylece kamera thread'i ile arayüz thread'i aynı listeyi aynı anda kullanmaz
+        // ("Collection was modified" hatası oluşmaz).
+        var detections = new List<DetectedFace>();
+        Bitmap displayBitmap;
+
         lock (_frameLock)
         {
-            _currentFrame?.Dispose();
-            _currentFrame = frame.Clone();
-
-            _currentDetections.Clear();
-
             // 1. Yüzleri algıla
             var faceRects = _detector.DetectFaces(frame);
 
@@ -199,7 +204,7 @@ public partial class Form1 : Form
                     CroppedFace = cropped.Clone()
                 };
 
-                _currentDetections.Add(detection);
+                detections.Add(detection);
 
                 // Çizim: Yeşil dikdörtgen
                 var boxColor = label != "Bilinmiyor" ? Scalar.LimeGreen : Scalar.Gold;
@@ -216,25 +221,40 @@ public partial class Form1 : Form
                 Cv2.PutText(frame, tagText, new OpenCvSharp.Point(textOrigin.X + 3, textOrigin.Y), HersheyFonts.HersheySimplex, 0.55, Scalar.Black, 1, LineTypes.AntiAlias);
             }
 
-            // UI'ya aktar
-            var displayBitmap = BitmapConverter.ToBitmap(frame);
+            displayBitmap = BitmapConverter.ToBitmap(frame);
             frame.Dispose();
-
-            if (IsDisposed)
-            {
-                displayBitmap.Dispose();
-                return;
-            }
-
-            BeginInvoke(() =>
-            {
-                var oldBmp = pbVideo.Image;
-                pbVideo.Image = displayBitmap;
-                oldBmp?.Dispose();
-
-                UpdateResultsUI();
-            });
         }
+
+        if (IsDisposed || !IsHandleCreated)
+        {
+            displayBitmap.Dispose();
+            DisposeDetections(detections);
+            return;
+        }
+
+        // UI'ya aktar
+        BeginInvoke(() =>
+        {
+            var oldBmp = pbVideo.Image;
+            pbVideo.Image = displayBitmap;
+            oldBmp?.Dispose();
+
+            // Önceki karenin kırpılmış yüzleri (Mat) yerel (native) bellekte tutulur ve GC
+            // bunları zamanında temizlemez; saniyede ~30 kare geldiği için açıkça serbest bırakılır.
+            DisposeDetections(_currentDetections);
+            _currentDetections = detections;
+
+            UpdateResultsUI();
+        });
+    }
+
+    private static void DisposeDetections(List<DetectedFace> detections)
+    {
+        foreach (var detection in detections)
+        {
+            detection.CroppedFace?.Dispose();
+        }
+        detections.Clear();
     }
 
     private void UpdateResultsUI()
@@ -316,7 +336,7 @@ public partial class Form1 : Form
         _camera.Stop();
         _detector?.Dispose();
         _recognizer?.Dispose();
-        _currentFrame?.Dispose();
+        DisposeDetections(_currentDetections);
         _lastCroppedFace?.Dispose();
     }
 }
